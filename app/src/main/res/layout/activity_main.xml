@@ -1,18 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:gravity="center">
 
-    <TextView
+    <Button
+        android:id="@+id/readVersions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_margin="6sp"
+        android:onClick="readVersions"
+        android:text="Read versions" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textSize="27sp"
+        android:gravity="center"
+        android:padding="6sp"/>
+
+    <Button
+        android:id="@+id/newUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="6sp"
+        android:onClick="newUpdate"
+        android:text="New Update" />
+
+    <Button
+        android:id="@+id/downloadUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="6sp"
+        android:onClick="downloadUpdate"
+        android:text="Donwload Update" />
+
+    <Button
+        android:id="@+id/endService"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="6sp"
+        android:onClick="endService"
+        android:text="End background service" />
+
+    <Button
+        android:id="@+id/threadsTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="threadsTest"
+        android:text="Threads test"
+        android:layout_marginTop="100sp"
+        android:textColor="@color/black"/>
+
+</LinearLayout>

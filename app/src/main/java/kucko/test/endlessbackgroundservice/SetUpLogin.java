@@ -2,7 +2,6 @@ package kucko.test.endlessbackgroundservice;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
-import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
@@ -15,7 +14,7 @@ import java.util.Locale;
 
 public class SetUpLogin {
 
-    private static final String TAG_CLASS           = "CheckUpdateOnCloud::";
+    private static final String TAG_CLASS           = "SetUpLogin::";
     private static final String SmVersionString     = "/?Sm_Version=";
     private static final String IcmVersionString     = "/?Icm_Version=";
     private static final String EcrVersionString    = "&Ecr_Version=";
@@ -24,10 +23,6 @@ public class SetUpLogin {
     public static final String POST_REQUEST      = "POST_REQUEST";
 
     private final GetDeviceInfo getDeviceInfo;
-
-    private String NFUHW;
-    private String NFUFW;
-    private String ECRFW;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public SetUpLogin() {
@@ -49,19 +44,19 @@ public class SetUpLogin {
         }
         else
         {
-            NFUHW = getNFUHW();
-            NFUFW = getNFUFW();
-            ECRFW = getECRFW();
+            UpdateOSService.NFUHW = getNFUHW();
+            UpdateOSService.NFUFW = getNFUFW();
+            UpdateOSService.ECRFW = getECRFW();
 
             if( whichRequest.equals( GET_REQUEST ) )
             {
-                login = getECRSN() + "_" + getECRHW() + "_" + NFUHW + "_" + getDEVID()
-                        + SmVersionString + NFUFW + EcrVersionString + ECRFW;
+                login = getECRSN() + "_" + getECRHW() + "_" + UpdateOSService.NFUHW + "_" + getDEVID()
+                        + SmVersionString + UpdateOSService.NFUFW + EcrVersionString + UpdateOSService.ECRFW;
             }
             else if( whichRequest.equals( POST_REQUEST ) )
             {
-                login = getECRSN() + "_" + getECRHW() + "_" + NFUHW + "_" + getDEVID()
-                        + IcmVersionString + NFUFW + EcrVersionString + ECRFW;
+                login = getECRSN() + "_" + getECRHW() + "_" + UpdateOSService.NFUHW + "_" + getDEVID()
+                        + IcmVersionString + UpdateOSService.NFUFW + EcrVersionString + UpdateOSService.ECRFW;
             }
         }
         Log.d( LOG_TAG, TAG_CLASS + " Login: " + login );

@@ -10,8 +10,6 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import java.io.IOException;
-
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class BootBroadcastReceiver extends BroadcastReceiver
 {
@@ -21,14 +19,23 @@ public class BootBroadcastReceiver extends BroadcastReceiver
     {
         if( intent.getAction().equals( Intent.ACTION_BOOT_COMPLETED ) )
         {
-            Log.d( LOG_TAG, TAG_CLASS + " onReceive() - Init and read versions." );
-            SetUpLogin setUp = new SetUpLogin();
-            try {
-                String getRequestLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
-                String postRequestLogin = setUp.setUpLogin( SetUpLogin.POST_REQUEST );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Log.d( LOG_TAG, TAG_CLASS + " onReceive() - Init and start service." );
+            startService( context );
+        }
+    }
+
+    public static void startService( Context context )
+    {
+        Log.d( LOG_TAG, TAG_CLASS + " startService() - starting service." );
+        Intent updateOSService = new Intent( context, UpdateOSService.class );
+        updateOSService.setAction( UpdateOSService.ACTIONS.START_SERVICE.toString() );
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+        {
+            context.startForegroundService( updateOSService );
+        }
+        else
+        {
+            context.startService( updateOSService );
         }
     }
 }

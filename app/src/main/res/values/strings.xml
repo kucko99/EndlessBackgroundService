@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">EndlessBackgroundService</string>
+    <string name="notification_title">UpdateOS</string>
+    <string name="notification_text_downloading">Downloading update...</string>
 </resources>
