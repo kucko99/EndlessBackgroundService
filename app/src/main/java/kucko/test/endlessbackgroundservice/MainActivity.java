@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity
 
         if( !isMyServiceRunning )
         {
-            BootBroadcastReceiver.startService( this );
+            BootBroadcastReceiver.startService( this, UpdateOSService.NFUHW, UpdateOSService.NFUFW, UpdateOSService.ECRFW );
         }
     }
 
@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity
     private void readLoginAndRefreshUI( String loginFromService )
     {
         text.setText( loginFromService );
+    }
+
+    public void updatedDevice(View view) {
+        sendBroadcast( new Intent().setAction( UpdateOSService.UPDATE_OS_UPDATED_DEVICE ) );
+        Log.d( LOG_TAG, TAG_CLASS + " sending device is updated broadcast." );
     }
 
     public void downloadUpdate( View view )
@@ -118,5 +123,4 @@ public class MainActivity extends AppCompatActivity
         }
         return false;
     }
-
 }

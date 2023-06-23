@@ -21,16 +21,14 @@ public class UpdateNotification extends Notification
     public static final int DOWNLOAD_NOTIFICATION   = 1;
     public static final int STATE_NOTIFICATION      = 2;
 
-    private final Object object;
     private final Context m_Context;
     private final PendingIntent m_PendingIntent;
     private final NotificationManager m_NotificationManager;
     private NotificationCompat.Builder  m_NotificationBuilder;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public UpdateNotification( int typeOfNotification, Context context, Object object )
+    public UpdateNotification( int typeOfNotification, Context context )
     {
-        this.object = object;
         this.m_Context = context;
         this.NOTIFICATION_ID = typeOfNotification;
         m_NotificationManager = ( NotificationManager ) m_Context.getSystemService( Context.NOTIFICATION_SERVICE );

@@ -3,6 +3,10 @@ package kucko.test.endlessbackgroundservice;
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 import static kucko.test.endlessbackgroundservice.UpdateOSServiceState.setServiceState;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +20,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 
@@ -45,11 +50,10 @@ public class UpdateOSService extends Service
 
     private static final String TAG_CLASS = "UpdateOSService::";
 
-    public static String NFUHW;
-    public static String NFUFW;
-    public static String ECRFW;
+    public static String NFUHW = "";
+    public static String NFUFW = "";
+    public static String ECRFW = "";
 
-    private PowerManager.WakeLock wakeLock;
     private boolean isServiceStarted = false;
 
     private UpdateNotification updateNotification;
@@ -87,6 +91,13 @@ public class UpdateOSService extends Service
 
             if ( action.equals( ACTIONS.START_SERVICE.text ) )
             {
+                if( intent.hasExtra( "NFUHW" ) && intent.hasExtra( "NFUFW" ) && intent.hasExtra( "ECRFW" ) )
+                {
+                    NFUHW = intent.getStringExtra( "NFUHW" );
+                    NFUFW = intent.getStringExtra( "NFUFW" );
+                    ECRFW = intent.getStringExtra( "ECRFW" );
+                    startService();
+                }
                 startService();
             }
             else
@@ -110,7 +121,7 @@ public class UpdateOSService extends Service
         isServiceStarted = false;
         Log.d( LOG_TAG, TAG_CLASS + " the service has been destroyed." );
 
-        BootBroadcastReceiver.startService( this );
+        BootBroadcastReceiver.startService( this, NFUHW, NFUFW, ECRFW );
     }
 
     @Override
@@ -126,11 +137,6 @@ public class UpdateOSService extends Service
 
         isServiceStarted = true;
         setServiceState( this, UpdateOSServiceState.ServiceState.STARTED );
-//        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-//        if (powerManager != null) {
-//            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "UpdateOS::WakeLock");
-//            wakeLock.acquire();
-//        }
 
         SetUpLogin setUp = new SetUpLogin();
         String login = "";
@@ -151,9 +157,6 @@ public class UpdateOSService extends Service
     private void stopService()
     {
         try {
-            if (wakeLock != null && wakeLock.isHeld()) {
-                wakeLock.release();
-            }
             stopForeground(true);
             stopSelf();
         } catch (Exception e) {
@@ -167,21 +170,22 @@ public class UpdateOSService extends Service
 
     private void updatedDevice()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this, this );
+        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
         updateNotification.showUpdateStateNotificationNoAvailableUpdate();
+        updateNotification.getM_NotificationBuilder().setPriority( Notification.PRIORITY_MIN );
         startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
     private void newUpdate()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this, this );
+        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
         updateNotification.showUpdateStateNotificationAvailableUpdate();
         startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
     private void downloadUpdate()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.DOWNLOAD_NOTIFICATION, this, this );
+        updateNotification = new UpdateNotification( UpdateNotification.DOWNLOAD_NOTIFICATION, this );
         updateNotification.showUpdateStateNotificationDownloadedUpdate();
         startForeground( UpdateNotification.DOWNLOAD_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
         updateNotification.setProgress( 30 );
@@ -198,6 +202,7 @@ public class UpdateOSService extends Service
     public static final String UPDATE_OS_END_SERVICE = "UPDATE_OS_END_SERVICE";
     public static final String UPDATE_OS_NEW_UPDATE = "UPDATE_OS_NEW_UPDATE";
     public static final String UPDATE_OS_DOWNLOAD_UPDATE = "UPDATE_OS_DOWNLOAD_UPDATE";
+    public static final String UPDATE_OS_UPDATED_DEVICE = "UPDATE_OS_UPDATED_DEVICE";
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -214,6 +219,10 @@ public class UpdateOSService extends Service
             else if ( intent.getAction().equals( UPDATE_OS_END_SERVICE ) )
             {
                 stopService();
+            }
+            else if ( intent.getAction().equals( UPDATE_OS_UPDATED_DEVICE ) )
+            {
+                updatedDevice();
             }
         }
     };

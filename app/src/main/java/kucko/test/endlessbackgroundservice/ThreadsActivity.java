@@ -43,7 +43,7 @@ public class ThreadsActivity extends AppCompatActivity
         outputLog =  "Test spustený " + ( withMutex ? "s mutexom." : "bez mutexu." ) + "\n" ;
         Log.d(LOG_TAG, TAG_CLASS + "Test spustený " + ( withMutex ? "s mutexom." : "bez mutexu." ) );
 
-            Thread[] threads = new Thread[10];
+        Thread[] threads = new Thread[10];
 
         for ( int i=0; i < threads.length; i++ )
         {
@@ -58,13 +58,27 @@ public class ThreadsActivity extends AppCompatActivity
         new Handler().postDelayed( () -> resultText.setText( outputLog ), 1000 );
     }
 
-    public static synchronized void incrementWithMutex( int threadId )
+    private static Object mutex = new Object();
+
+    public static void incrementWithMutex( int threadId )
     {
-        for (int i = 0; i < 10; i++)
+        synchronized ( mutex )
         {
-            count++;
-            outputLog += "Vlákno " + threadId + ": count = " + count + "\n" ;
-            Log.d(LOG_TAG, TAG_CLASS + " incrementWithMutex(): Vlákno " + threadId + ": count = " + count );
+            for (int i = 0; i < 10; i++)
+            {
+                count++;
+                outputLog += "Vlákno " + threadId + ": count = " + count + "\n" ;
+                testMutex();
+                Log.d(LOG_TAG, TAG_CLASS + " incrementWithMutex(): Vlákno " + threadId + ": count = " + count );
+            }
+        }
+    }
+
+    public static void testMutex(  )
+    {
+        synchronized ( mutex )
+        {
+            Log.d(LOG_TAG, TAG_CLASS + " testMutex(). " );
         }
     }
 

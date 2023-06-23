@@ -44,9 +44,17 @@ public class SetUpLogin {
         }
         else
         {
-            UpdateOSService.NFUHW = getNFUHW();
-            UpdateOSService.NFUFW = getNFUFW();
-            UpdateOSService.ECRFW = getECRFW();
+            if( UpdateOSService.NFUHW.isEmpty() || UpdateOSService.NFUFW.isEmpty() || UpdateOSService.ECRFW.isEmpty() )
+            {
+                UpdateOSService.NFUHW = getNFUHW();
+                UpdateOSService.NFUFW = getNFUFW();
+                UpdateOSService.ECRFW = getECRFW();
+                Log.d( LOG_TAG, TAG_CLASS + " one of versions are empty." );
+            }
+            else
+            {
+                Log.d( LOG_TAG, TAG_CLASS + " versions are not empty." );
+            }
 
             if( whichRequest.equals( GET_REQUEST ) )
             {
