@@ -1,12 +1,9 @@
-package kucko.test.endlessbackgroundservice;
+package kucko.test.endlessbackgroundservice.services;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
-import static kucko.test.endlessbackgroundservice.UpdateOSServiceState.setServiceState;
+import static kucko.test.endlessbackgroundservice.services.UpdateOSServiceState.setServiceState;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,15 +11,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
+
+import kucko.test.endlessbackgroundservice.utils.PostRequestToCloud;
+import kucko.test.endlessbackgroundservice.utils.SetUpLogin;
+import kucko.test.endlessbackgroundservice.notification.UpdateNotification;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class UpdateOSService extends Service
@@ -53,6 +52,9 @@ public class UpdateOSService extends Service
     public static String NFUHW = "";
     public static String NFUFW = "";
     public static String ECRFW = "";
+
+    public static String getReqLogin = "";
+    public static String postReqLogin = "";
 
     private boolean isServiceStarted = false;
 
@@ -96,7 +98,6 @@ public class UpdateOSService extends Service
                     NFUHW = intent.getStringExtra( "NFUHW" );
                     NFUFW = intent.getStringExtra( "NFUFW" );
                     ECRFW = intent.getStringExtra( "ECRFW" );
-                    startService();
                 }
                 startService();
             }
@@ -138,18 +139,23 @@ public class UpdateOSService extends Service
         isServiceStarted = true;
         setServiceState( this, UpdateOSServiceState.ServiceState.STARTED );
 
-        SetUpLogin setUp = new SetUpLogin();
-        String login = "";
+        SetUpLogin setUp = new SetUpLogin( this );
         try {
-            login = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
+            getReqLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
+            postReqLogin = setUp.setUpLogin( SetUpLogin.POST_REQUEST );
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        new PostRequestToCloud( postReqLogin, this );
+
         Intent loginIntent = new Intent( UPDATE_OS_LOGIN );
-        loginIntent.putExtra("login", login);
+        loginIntent.putExtra("login", getReqLogin);
         sendBroadcast( loginIntent );
         Log.d( LOG_TAG, TAG_CLASS + " sending login broadcast." );
+
+        TwentyFourHoursTimer twentyFourHoursTimer = new TwentyFourHoursTimer();
+        twentyFourHoursTimer.setUpAlarm( this, false );
 
         Log.d( LOG_TAG, TAG_CLASS + " starting the foreground service." );
     }

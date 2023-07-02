@@ -1,7 +1,11 @@
-package kucko.test.endlessbackgroundservice;
+package kucko.test.endlessbackgroundservice.utils;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
+import android.app.Application;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
@@ -12,8 +16,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
 
-public class SetUpLogin {
+import kucko.test.endlessbackgroundservice.R;
+import kucko.test.endlessbackgroundservice.services.UpdateOSService;
+import kucko.test.endlessbackgroundservice.utils.GetDeviceInfo;
+import kucko.test.endlessbackgroundservice.utils.GetRequestToCloud;
+import kucko.test.endlessbackgroundservice.utils.PostRequestToCloud;
 
+public class SetUpLogin
+{
     private static final String TAG_CLASS           = "SetUpLogin::";
     private static final String SmVersionString     = "/?Sm_Version=";
     private static final String IcmVersionString     = "/?Icm_Version=";
@@ -23,9 +33,12 @@ public class SetUpLogin {
     public static final String POST_REQUEST      = "POST_REQUEST";
 
     private final GetDeviceInfo getDeviceInfo;
+    private final Context context;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public SetUpLogin() {
+    public SetUpLogin( Context context )
+    {
+        this.context = context;
         this.getDeviceInfo = new GetDeviceInfo();
     }
 
@@ -40,10 +53,22 @@ public class SetUpLogin {
         String checkCommWithNFU = getDeviceInfo.getDeviceInfoExByIndex( 2 );
         if( checkCommWithNFU.contains( "Error" ) )
         {
+            if (context instanceof Application)
+            {
+                Intent serverError = new Intent();
+                //serverError.setAction( BroadcastMsgReceiver.UPDATE_OS_REQUEST_TO_CLOUD_ERROR);
+                serverError.putExtra( "message", context.getResources().getString( R.string.errorCommunicationNFU ) );
+                context.sendBroadcast(serverError);
+            }
+            else if (context instanceof Service)
+            {
+                Log.d( LOG_TAG, TAG_CLASS + " " + context.getResources().getString( R.string.errorCommunicationNFU ) + ". (" + GET_REQUEST + ")" );
+            }
             Log.d( LOG_TAG, TAG_CLASS + " errorCommunicationNFU (" + whichRequest + ")" );
         }
         else
         {
+            Log.d( LOG_TAG, TAG_CLASS + " NFUHW: " + UpdateOSService.NFUHW + " | NFUFW: " + UpdateOSService.NFUFW + " | ECRFW: " + UpdateOSService.ECRFW );
             if( UpdateOSService.NFUHW.isEmpty() || UpdateOSService.NFUFW.isEmpty() || UpdateOSService.ECRFW.isEmpty() )
             {
                 UpdateOSService.NFUHW = getNFUHW();
@@ -67,7 +92,7 @@ public class SetUpLogin {
                         + IcmVersionString + UpdateOSService.NFUFW + EcrVersionString + UpdateOSService.ECRFW;
             }
         }
-        Log.d( LOG_TAG, TAG_CLASS + " Login: " + login );
+        Log.d( LOG_TAG, TAG_CLASS + " (" + whichRequest + ") Login: " + login );
         return login;
     }
 

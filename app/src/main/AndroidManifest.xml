@@ -35,7 +35,7 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BootBroadcastReceiver"
+        <receiver android:name=".services.BootBroadcastReceiver"
             android:exported="false">
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -44,7 +44,16 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".UpdateOSService"
+        <receiver android:name=".services.TwentyFourHoursTimer"
+            android:exported="false">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".services.UpdateOSService"
             android:enabled="true"
             android:exported="false"
             android:stopWithTask="false">
@@ -53,10 +62,18 @@
             </intent-filter>
         </service>
 
+        <service android:name=".services.CheckingCloudService" />
+
         <activity android:name=".ThreadsActivity"
             android:parentActivityName=".MainActivity"
             android:allowBackup="true"
             android:label="Mutex Test">
+        </activity>
+
+        <activity android:name=".TimerActivity"
+            android:parentActivityName=".MainActivity"
+            android:allowBackup="true"
+            android:label="Timer Test">
         </activity>
 
     </application>

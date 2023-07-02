@@ -1,4 +1,4 @@
-package kucko.test.endlessbackgroundservice;
+package kucko.test.endlessbackgroundservice.notification;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,6 +12,9 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+
+import kucko.test.endlessbackgroundservice.MainActivity;
+import kucko.test.endlessbackgroundservice.R;
 
 public class UpdateNotification extends Notification
 {
@@ -90,6 +93,7 @@ public class UpdateNotification extends Notification
     {
         return m_NotificationManager;
     }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationNoAvailableUpdate()
     {

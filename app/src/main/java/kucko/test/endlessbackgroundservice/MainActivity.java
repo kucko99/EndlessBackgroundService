@@ -16,6 +16,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import kucko.test.endlessbackgroundservice.services.BootBroadcastReceiver;
+import kucko.test.endlessbackgroundservice.services.UpdateOSService;
+
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity
 {
@@ -122,5 +125,11 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return false;
+    }
+
+    public void timerTest( View view )
+    {
+        Intent timerActivityIntent = new Intent( this, TimerActivity.class );
+        startActivity( timerActivityIntent );
     }
 }

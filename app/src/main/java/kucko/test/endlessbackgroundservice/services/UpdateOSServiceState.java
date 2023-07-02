@@ -1,4 +1,4 @@
-package kucko.test.endlessbackgroundservice;
+package kucko.test.endlessbackgroundservice.services;
 
 import android.content.Context;
 import android.content.SharedPreferences;

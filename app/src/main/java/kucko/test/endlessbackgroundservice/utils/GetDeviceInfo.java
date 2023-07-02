@@ -1,4 +1,4 @@
-package kucko.test.endlessbackgroundservice;
+package kucko.test.endlessbackgroundservice.utils;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 

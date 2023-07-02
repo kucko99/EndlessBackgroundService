@@ -1,5 +1,90 @@
 <resources>
-    <string name="app_name">EndlessBackgroundService</string>
-    <string name="notification_title">UpdateOS</string>
-    <string name="notification_text_downloading">Downloading update...</string>
+    <string name="app_name" translatable="false">Endless Background Service</string>
+
+    // Custom AlertDialog buttons
+    <string name="button_yes">YES</string>
+    <string name="button_no">NO</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_ok" translatable="false">OK</string>
+
+    //Custom ProgressDialog texts
+    <string name="slash" translatable="false">/100</string>
+    <string name="percentage" translatable="false">%</string>
+
+    // Update OS messages
+    <string name="dialogTitle">@string/app_name</string>
+    <string name="updateOsQuestion">Are you sure you want to update the OS?</string>
+    <string name="incorrectOTAfile">Incorrect update file.</string>
+    <string name="noChosenFile">Update OS file is not selected.</string>
+    <string name="prepareUpdateErr">An error occurred while preparing to update.</string>
+    <string name="createDestDirErr">Can not create destination directory.</string>
+    <string name="batteryErrorText">The battery must be at least %1$d\%% charged.</string>
+    <string name="noInternetConnection">No internet connection. Connect and try again.</string>
+    <string name="downloadOTAInternetErr">An error occurred while downloading the update: Internet connection.</string>
+    <string name="unavailableUrl">Unavailable URL</string>
+    <string name="noRootCertificationError">Failed to verify the identity of the server for the update.</string>
+    <string name="errorCommunicationNFU">Communication error with the NFU</string>
+    <string name="errorCommunicationCloud">Error communicating with the server:</string>
+    <string name="downloadOTAErr">Error downloading an update.</string>
+    <string name="timeoutError">There was an unexpected problem, try again.</string>
+
+    // ProgressDialog
+    <string name="checkingFile">Verifying update, please wait.</string>
+    <string name="copyingFile">Preparing to update, please wait.</string>
+
+    // Update OS preferences main screen
+    <string name="device_info_key" translatable="false">device_info_key</string>
+    <string name="device_into_title">Device info</string>
+    <string name="device_info_summary_model">Model:\u0020</string>
+    <string name="device_info_summary_manufacturer">Manufacturer:\u0020</string>
+    // -----
+    <string name="system_info_key" translatable="false">system_info_key</string>
+    <string name="system_info_title">System info</string>
+    <string name="system_info_summary_android_version">Android version:\u0020</string>
+    <string name="system_info_summary_android_sdk_version">Android SDK version:\u0020</string>
+    <string name="system_info_summary_build_number">Build number:\u0020</string>
+    // -----
+    <string name="kernel_info_key" translatable="false">kernel_info_key</string>
+    <string name="kernel_info_title">Kernel info</string>
+    // -----
+    <string name="update_check_key" translatable="false">update_check_key</string>
+    <string name="update_check_title">Update check</string>
+    // -----
+    <string name="update_from_file_key" translatable="false">update_from_file_key</string>
+    <string name="update_from_file_title">Update from file</string>
+
+    // Update OS from file preferences screen
+    <string name="choose_file_key" translatable="false">choose_file_key</string>
+    <string name="choose_file_title">Update OS file</string>
+    <string name="choose_file_summary_file_path">Path:\u0020</string>
+    <string name="choose_file_summary_file_name">Name:\u0020</string>
+    <string name="choose_file_summary_file_date">Date</string>
+    <string name="choose_file_summary_file_size">Size</string>
+    <string name="choose_file_summary_file_empty">(empty)</string>
+    // -----
+    <string name="update_os_key" translatable="false">update_os_key</string>
+    <string name="update_os_title">Update OS</string>
+
+    // Update OS from cloud preferences screen
+    <string name="cloud_progress_bar_key" translatable="false">cloud_progress_bar_key</string>
+    <string name="cloud_progress_text_key" translatable="false">cloud_progress_text_key</string>
+    <string name="cloud_progress_bar_check">Checking…</string>
+    <string name="cloud_progress_bar_no_update">Your OS is up to date</string>
+    <string name="cloud_progress_bar_new_update">New version of OS is available</string>
+    // -----
+    <string name="cloud_update_version_key" translatable="false">cloud_update_version_key</string>
+    <string name="cloud_update_version_title">Available version</string>
+    <string name="cloud_update_downloaded_version_title">Available downloaded version</string>
+    // -----
+    <string name="cloud_update_download_key" translatable="false">cloud_update_download_key</string>
+    <string name="cloud_update_download_title">Download update</string>
+    // -----
+    <string name="cloud_update_os_key" translatable="false">cloud_update_os_key</string>
+
+    //Notification and dialog
+    <string name="notification_title" translatable="false">UPDATE OS</string>
+    <string name="notification_text_downloading" >Downloading the new OS version..</string>
+    <string name="notification_text_done" >New OS version ready for upgrade</string>
+    <string name="notification_text_failed">Download failed</string>
+
 </resources>
