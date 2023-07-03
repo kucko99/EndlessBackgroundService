@@ -13,9 +13,9 @@
 
     // Update OS messages
     <string name="dialogTitle">@string/app_name</string>
-    <string name="updateOsQuestion">Are you sure you want to update the OS?</string>
+    <string name="updateOsQuestion">Are you sure you want to update the system?</string>
     <string name="incorrectOTAfile">Incorrect update file.</string>
-    <string name="noChosenFile">Update OS file is not selected.</string>
+    <string name="noChosenFile">Update system file is not selected.</string>
     <string name="prepareUpdateErr">An error occurred while preparing to update.</string>
     <string name="createDestDirErr">Can not create destination directory.</string>
     <string name="batteryErrorText">The battery must be at least %1$d\%% charged.</string>
@@ -55,7 +55,7 @@
 
     // Update OS from file preferences screen
     <string name="choose_file_key" translatable="false">choose_file_key</string>
-    <string name="choose_file_title">Update OS file</string>
+    <string name="choose_file_title">Update system file</string>
     <string name="choose_file_summary_file_path">Path:\u0020</string>
     <string name="choose_file_summary_file_name">Name:\u0020</string>
     <string name="choose_file_summary_file_date">Date</string>
@@ -69,8 +69,8 @@
     <string name="cloud_progress_bar_key" translatable="false">cloud_progress_bar_key</string>
     <string name="cloud_progress_text_key" translatable="false">cloud_progress_text_key</string>
     <string name="cloud_progress_bar_check">Checking…</string>
-    <string name="cloud_progress_bar_no_update">Your OS is up to date</string>
-    <string name="cloud_progress_bar_new_update">New version of OS is available</string>
+    <string name="cloud_progress_bar_no_update">Your system is up to date</string>
+    <string name="cloud_progress_bar_new_update">New version of system is available</string>
     // -----
     <string name="cloud_update_version_key" translatable="false">cloud_update_version_key</string>
     <string name="cloud_update_version_title">Available version</string>
@@ -83,8 +83,8 @@
 
     //Notification and dialog
     <string name="notification_title" translatable="false">UPDATE OS</string>
-    <string name="notification_text_downloading" >Downloading the new OS version..</string>
-    <string name="notification_text_done" >New OS version ready for upgrade</string>
+    <string name="notification_text_downloading" >Downloading the new system version..</string>
+    <string name="notification_text_done" >New system version ready for upgrade</string>
     <string name="notification_text_failed">Download failed</string>
 
 </resources>

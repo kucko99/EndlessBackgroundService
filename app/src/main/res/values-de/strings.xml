@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    // Custom AlertDialog buttons
+    <string name="button_yes">JA</string>
+    <string name="button_no">NEIN</string>
+
+    // Update OS messages
+    <string name="dialogTitle">@string/app_name</string>
+    <string name="updateOsQuestion">"Möchten Sie das Betriebssystem wirklich aktualisieren? "</string>
+    <string name="incorrectOTAfile">Falsche Update-Datei.</string>
+    <string name="noChosenFile">OS-Datei aktualisieren ist nicht ausgewählt.</string>
+    <string name="prepareUpdateErr">"Beim Vorbereiten der Aktualisierung ist ein Fehler aufgetreten. "</string>
+    <string name="createDestDirErr">Kann das Zielverzeichnis nicht erstellen.</string>
+    <string name="batteryErrorText">Die Batterie muss mindestens zu %1$d\%% geladen sein.</string>
+
+    // ProgressDialog
+    <string name="errorCommunicationNFU">Kommunikationsfehler mit der NFU</string>
+    <string name="timeoutError">Es ist ein unerwartetes Problem aufgetreten, versuchen Sie es erneut.</string>
+    <string name="checkingFile">Verifizierung des Updates, bitte warten.</string>
+    <string name="copyingFile">Die Aktualisierung wird vorbereitet, bitte warten Sie.</string>
+
+    // Update OS preferencies screen
+    <string name="device_into_title">Geräte-Infos</string>
+    <string name="device_info_summary_model">Modell:\u0020</string>
+    <string name="device_info_summary_manufacturer">Hersteller:\u0020</string>
+    // -----
+    <string name="system_info_title">System-Infos</string>
+    <string name="system_info_summary_android_version">Android-Version:\u0020</string>
+    <string name="system_info_summary_android_sdk_version">Android SDK-Version:\u0020</string>
+    <string name="system_info_summary_build_number">Build-Nummer:\u0020</string>
+    // -----
+    <string name="kernel_info_title">Kernel-Infos</string>
+    // -----
+    <string name="choose_file_title">OS-Datei aktualisieren</string>
+    <string name="choose_file_summary_file_path">"Pfad:\u0020 "</string>
+    <string name="choose_file_summary_file_name">Name:\u0020</string>
+    <string name="choose_file_summary_file_date">Datum</string>
+    <string name="choose_file_summary_file_size">Größe</string>
+    <string name="choose_file_summary_file_empty">(leer)</string>
+    // -----
+    <string name="update_os_title">OS aktualisieren</string>
+    <string name="update_check_title">Update-Prüfung</string>
+    <string name="update_from_file_title">Aktualisierung aus einer Datei</string>
+    <string name="cloud_update_version_title">Verfügbare Version</string>
+    <string name="cloud_update_download_title">Update herunterladen</string>
+    <string name="cloud_progress_bar_check">Prüfen...</string>
+    <string name="cloud_progress_bar_no_update">Ihr OS ist auf dem neuesten Stand</string>
+    <string name="cloud_progress_bar_new_update">Neue Version des OS ist verfügbar</string>
+    <string name="cloud_update_downloaded_version_title">Verfügbare heruntergeladene Version</string>
+    <string name="notification_text_downloading">Herunterladen der neuen OS-Version..</string>
+    <string name="notification_text_done">Neue OS-Version bereit zum Upgrade</string>
+    <string name="notification_text_failed">Download fehlgeschlagen</string>
+    <string name="noInternetConnection">Keine Internetverbindung. Verbinden und erneut versuchen.</string>
+    <string name="button_cancel">Abbrechen</string>
+    <string name="downloadOTAInternetErr">Beim Herunterladen des Updates ist ein Fehler aufgetreten: Internetverbindung.</string>
+    <string name="unavailableUrl">Nicht verfügbare URL</string>
+    <string name="noRootCertificationError">Die Identität des Servers für die Aktualisierung konnte nicht überprüft werden.</string>
+    <string name="errorCommunicationCloud">Fehler bei der Kommunikation mit dem Server:</string>
+    <string name="downloadOTAErr">Fehler beim Herunterladen eines Updates.</string>
+
+</resources>

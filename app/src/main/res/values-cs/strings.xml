@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    // Custom AlertDialog buttons
+    <string name="button_yes">ANO</string>
+    <string name="button_no">NE</string>
+
+    // Update OS messages
+    <string name="dialogTitle">@string/app_name</string>
+    <string name="updateOsQuestion">Opravdu chcete aktualizovat operační systém?</string>
+    <string name="incorrectOTAfile">Nesprávný soubor pro aktualizaci.</string>
+    <string name="noChosenFile">Soubor pro aktualizaci systému nebyl zvolen.</string>
+    <string name="prepareUpdateErr">Chyba při přípravě na aktualizaci.</string>
+    <string name="createDestDirErr">Nelze vytvořit cílový adresář.</string>
+    <string name="batteryErrorText">Baterie musí být nabitá na minimálně %1$d\%%.</string>
+
+    // ProgressDialog
+    <string name="errorCommunicationNFU">Chyba při komunikaci s NFU</string>
+    <string name="timeoutError">Došlo k neočekávanému problému, zkuste to znovu.</string>
+    <string name="checkingFile">Ověřování aktualizace, čekejte prosím.</string>
+    <string name="copyingFile">Příprava na aktualizaci, čekejte prosím.</string>
+
+    // Update OS preferencies screen
+    <string name="device_into_title">Informace o zařízení</string>
+    <string name="device_info_summary_model">Model:\u0020</string>
+    <string name="device_info_summary_manufacturer">Výrobce:\u0020</string>
+    // -----
+    <string name="system_info_title">Informace o systému</string>
+    <string name="system_info_summary_android_version">Verze Android:\u0020</string>
+    <string name="system_info_summary_android_sdk_version">Verze Android SDK:\u0020</string>
+    <string name="system_info_summary_build_number">Číslo sestavení:\u0020</string>
+    // -----
+    <string name="kernel_info_title">Informace o jádře</string>
+    // -----
+    <string name="choose_file_title">Soubor pro aktualizaci systému</string>
+    <string name="choose_file_summary_file_path">Cesta:\u0020</string>
+    <string name="choose_file_summary_file_name">Název:\u0020</string>
+    <string name="choose_file_summary_file_date">Datum</string>
+    <string name="choose_file_summary_file_size">Velikost</string>
+    <string name="choose_file_summary_file_empty">(prázdný)</string>
+    // -----
+    <string name="update_os_title">Aktualizovat systém</string>
+    <string name="update_check_title">Kontrola aktualizace</string>
+    <string name="update_from_file_title">Aktualizace ze souboru</string>
+    <string name="cloud_update_version_title">Dostupná verze</string>
+    <string name="cloud_update_download_title">Stáhnout aktualizaci</string>
+    <string name="cloud_progress_bar_check">Kontroluje se...</string>
+    <string name="cloud_progress_bar_no_update">Váš systém je aktuální</string>
+    <string name="cloud_progress_bar_new_update">K dispozici je nová verze systému</string>
+    <string name="cloud_update_downloaded_version_title">Dostupná stažená verze</string>
+    <string name="notification_text_downloading">Stažení nové verze systému..</string>
+    <string name="notification_text_done">Nová verze systému připravená k aktualizaci</string>
+    <string name="notification_text_failed">Stažení neúspěšné</string>
+    <string name="noInternetConnection">Žádné připojení k internetu. Připojte se a zkuste to znovu.</string>
+    <string name="button_cancel">Zrušit</string>
+    <string name="downloadOTAInternetErr">Při stahování aktualizace došlo k chybě: Připojení k internetu.</string>
+    <string name="unavailableUrl">Nedostupná adresa URL</string>
+    <string name="noRootCertificationError">Nepodařilo se ověřit identitu serveru pro aktualizaci.</string>
+    <string name="errorCommunicationCloud">Chyba při komunikaci se serverem:</string>
+    <string name="downloadOTAErr">Chyba při stahování aktualizace.</string>
+
+</resources>

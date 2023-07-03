@@ -97,32 +97,32 @@ public class UpdateNotification extends Notification
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationNoAvailableUpdate()
     {
-        initializeUpdateOSNotification( "UpdateOS"
-                , "Device is updated.",
-                R.drawable.ic_info, R.drawable.ic_launcher_updateos, false );
+        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+                m_Context.getResources().getString( R.string.cloud_progress_bar_no_update ),
+                R.drawable.ic_info, R.drawable.icon, false );
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationAvailableUpdate()
     {
-        initializeUpdateOSNotification( "UpdateOS"
-                , "New update on cloud available.",
-                R.drawable.ic_info, R.drawable.ic_launcher_updateos, false );
+        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+                m_Context.getResources().getString( R.string.cloud_progress_bar_new_update ),
+                R.drawable.ic_info, R.drawable.icon, false );
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationDownloadFailed()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title )
-                , "Download failed.",
-                R.drawable.ic_info, R.drawable.ic_launcher_updateos, false );
+        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+                m_Context.getResources().getString( R.string.notification_text_failed ),
+                R.drawable.ic_info, R.drawable.icon, false );
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationDownloadedUpdate()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title )
-                , "Update is downloading...",
-                R.drawable.ic_info, R.drawable.ic_launcher_updateos, false );
+        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+                m_Context.getResources().getString( R.string.notification_text_done ),
+                R.drawable.ic_info, R.drawable.icon, false );
     }
 }
