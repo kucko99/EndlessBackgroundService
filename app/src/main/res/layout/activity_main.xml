@@ -54,6 +54,19 @@
         android:onClick="endService"
         android:text="End background service" />
 
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="40sp"
+        android:padding="6dp"/>
+
+    <Button
+        android:id="@+id/startDownload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="6sp"
+        android:onClick="startDownload"
+        android:text="Start download OTA" />
+
     <Button
         android:id="@+id/threadsTest"
         android:layout_width="wrap_content"

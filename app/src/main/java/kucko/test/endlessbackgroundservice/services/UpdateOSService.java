@@ -1,14 +1,23 @@
 package kucko.test.endlessbackgroundservice.services;
 
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_DOWNLOAD_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_END_SERVICE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_NEW_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_START_DOWNLOAD_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_STOP_DOWNLOAD_UPDATE;
+import static kucko.test.endlessbackgroundservice.MainActivity.DESTINATION_DIR_CONST;
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
-import static kucko.test.endlessbackgroundservice.services.UpdateOSServiceState.setServiceState;
 
 import android.app.Notification;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -17,20 +26,26 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.io.File;
 import java.io.IOException;
 
+import kucko.test.endlessbackgroundservice.BroadcastMsgReceiver;
+import kucko.test.endlessbackgroundservice.MainActivity;
+import kucko.test.endlessbackgroundservice.R;
+import kucko.test.endlessbackgroundservice.UpdateOS;
+import kucko.test.endlessbackgroundservice.asynctask.DownloadOTAfileAsyncTask;
+import kucko.test.endlessbackgroundservice.utils.GetRequestToCloud;
 import kucko.test.endlessbackgroundservice.utils.PostRequestToCloud;
 import kucko.test.endlessbackgroundservice.utils.SetUpLogin;
 import kucko.test.endlessbackgroundservice.notification.UpdateNotification;
+import kucko.test.endlessbackgroundservice.utils.SharedPreferences;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class UpdateOSService extends Service
 {
     public enum ACTIONS
     {
-        START_SERVICE( "START_SERVICE" ),
-        STOP_SERVICE( "STOP_SERVICE" ),
-        DOWNLOAD_UPDATE( "DOWNLOAD_UPDATE" ),
+        START_SERVICE( "START_SERVICE" )
         ;
 
         private final String text;
@@ -58,8 +73,18 @@ public class UpdateOSService extends Service
 
     private boolean isServiceStarted = false;
 
+    private String FILE_NAME;
+    private String FILE_SIZE;
+
+    private SharedPreferences sp;
+    private DownloadOTAfileAsyncTask downloadOTAfileAsyncTask;
+
+    private ConnectivityManager connectivityManager;
+    private ConnectivityManager.NetworkCallback networkCallback;
+
+    private BroadcastMsgReceiver m_BroadcastMsgReceiver;
+    private IntentFilter m_BroadcastMsgFilter;
     private UpdateNotification updateNotification;
-    private IntentFilter broadcastFilter;
 
     @Override
     public void onCreate()
@@ -68,17 +93,32 @@ public class UpdateOSService extends Service
         Log.d( LOG_TAG, TAG_CLASS + " the service has been created." );
 
         createBroadcastReceiver();
-        registerReceiver( broadcastReceiver, broadcastFilter );
+        registerReceiver( m_BroadcastMsgReceiver, m_BroadcastMsgFilter );
 
-        updatedDevice();
+        SetUpLogin setUp = new SetUpLogin( this );
+        try
+        {
+            getReqLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
+            postReqLogin = setUp.setUpLogin( SetUpLogin.POST_REQUEST );
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        sp = new SharedPreferences( this );
     }
 
     private void createBroadcastReceiver()
     {
-        broadcastFilter = new IntentFilter();
-        broadcastFilter.addAction( UPDATE_OS_NEW_UPDATE );
-        broadcastFilter.addAction( UPDATE_OS_END_SERVICE );
-        broadcastFilter.addAction( UPDATE_OS_DOWNLOAD_UPDATE );
+        m_BroadcastMsgReceiver = new BroadcastMsgReceiver( this );
+        m_BroadcastMsgFilter = new IntentFilter();
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_NEW_UPDATE );
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_END_SERVICE );
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_DOWNLOAD_UPDATE );
+
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_START_DOWNLOAD_UPDATE );
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_STOP_DOWNLOAD_UPDATE );
     }
 
     @Override
@@ -93,13 +133,16 @@ public class UpdateOSService extends Service
 
             if ( action.equals( ACTIONS.START_SERVICE.text ) )
             {
-                if( intent.hasExtra( "NFUHW" ) && intent.hasExtra( "NFUFW" ) && intent.hasExtra( "ECRFW" ) )
+                if ( !isServiceStarted )
                 {
-                    NFUHW = intent.getStringExtra( "NFUHW" );
-                    NFUFW = intent.getStringExtra( "NFUFW" );
-                    ECRFW = intent.getStringExtra( "ECRFW" );
+                    if ( intent.hasExtra( "NFUHW" ) && intent.hasExtra( "NFUFW" ) && intent.hasExtra( "ECRFW" ) )
+                    {
+                        NFUHW = intent.getStringExtra( "NFUHW" );
+                        NFUFW = intent.getStringExtra( "NFUFW" );
+                        ECRFW = intent.getStringExtra( "ECRFW" );
+                    }
+                    waitForInternetConn();
                 }
-                startService();
             }
             else
             {
@@ -118,7 +161,7 @@ public class UpdateOSService extends Service
     public void onDestroy()
     {
         super.onDestroy();
-        unregisterReceiver( broadcastReceiver );
+        unregisterReceiver( m_BroadcastMsgReceiver );
         isServiceStarted = false;
         Log.d( LOG_TAG, TAG_CLASS + " the service has been destroyed." );
 
@@ -131,36 +174,64 @@ public class UpdateOSService extends Service
         super.onTaskRemoved( rootIntent );
     }
 
-    private void startService()
+    private void waitForInternetConn()
+    {
+        connectivityManager = (ConnectivityManager) getSystemService( Context.CONNECTIVITY_SERVICE );
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable( Network network ) {
+                // Spustenie úloh, keď je dostupné pripojenie na internet
+                communicateWithServer();
+            }
+
+            @Override
+            public void onLost(Network network) {
+                // Spracovanie straty pripojenia na internet (ak je to relevantné pre vášu aplikáciu)
+            }
+        };
+
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N )
+        {
+            connectivityManager.registerDefaultNetworkCallback( networkCallback );
+        }
+        else
+        {
+            NetworkRequest request = new NetworkRequest.Builder()
+                    .addCapability( NetworkCapabilities.NET_CAPABILITY_INTERNET )
+                    .build();
+            connectivityManager.registerNetworkCallback( request, networkCallback );
+        }
+    }
+
+    private void communicateWithServer()
     {
         if ( isServiceStarted )
             return;
 
-        isServiceStarted = true;
-        setServiceState( this, UpdateOSServiceState.ServiceState.STARTED );
+        if ( !hasInternetConnection() )
+            return;
 
-        SetUpLogin setUp = new SetUpLogin( this );
-        try {
-            getReqLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
-            postReqLogin = setUp.setUpLogin( SetUpLogin.POST_REQUEST );
-        } catch (IOException e) {
-            e.printStackTrace();
+        isServiceStarted = true;
+
+        String PR_NFU_HW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_NFU_HW_VERSION );
+        String PR_NFU_FW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_NFU_FW_VERSION );
+        String PR_ECR_FW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_ECR_FW_VERSION );
+        if ( !NFUHW.equals( PR_NFU_HW_VERSION ) || !NFUFW.equals( PR_NFU_FW_VERSION ) || !ECRFW.equals( PR_ECR_FW_VERSION ) )
+        {
+            new PostRequestToCloud( postReqLogin, this ).sendNFUAndECRFWVersionsToCloud();
         }
 
-        new PostRequestToCloud( postReqLogin, this );
+        new GetRequestToCloud( getReqLogin, this ).checkNewUpdateOnCloud();
 
-        Intent loginIntent = new Intent( UPDATE_OS_LOGIN );
-        loginIntent.putExtra("login", getReqLogin);
-        sendBroadcast( loginIntent );
-        Log.d( LOG_TAG, TAG_CLASS + " sending login broadcast." );
+        CheckUpdateTimer checkUpdateTimer = new CheckUpdateTimer();
+        checkUpdateTimer.setAlarm( this, CheckUpdateTimer.PERIODIC_CHECK_INTERVAL );
 
-        TwentyFourHoursTimer twentyFourHoursTimer = new TwentyFourHoursTimer();
-        twentyFourHoursTimer.setUpAlarm( this, false );
+        connectivityManager.unregisterNetworkCallback( networkCallback );
 
         Log.d( LOG_TAG, TAG_CLASS + " starting the foreground service." );
     }
 
-    private void stopService()
+    public void stopService()
     {
         try {
             stopForeground(true);
@@ -169,12 +240,11 @@ public class UpdateOSService extends Service
             Log.d( LOG_TAG, TAG_CLASS + " service stopped without being started: " + e.getMessage() );
         }
         isServiceStarted = false;
-        setServiceState( this, UpdateOSServiceState.ServiceState.STOPPED );
 
         Log.d( LOG_TAG, TAG_CLASS + " stopping the foreground service." );
     }
 
-    private void updatedDevice()
+    public void updatedDevice()
     {
         updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
         updateNotification.showUpdateStateNotificationNoAvailableUpdate();
@@ -182,20 +252,91 @@ public class UpdateOSService extends Service
         startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
-    private void newUpdate()
+    public void newUpdate()
     {
         updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
         updateNotification.showUpdateStateNotificationAvailableUpdate();
         startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
-    private void downloadUpdate()
+    public void downloadUpdate()
+    {
+        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
+        updateNotification.showUpdateStateNotificationDownloadedUpdate();
+        startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+    }
+
+    private void createUpdateProgressNotif()
     {
         updateNotification = new UpdateNotification( UpdateNotification.DOWNLOAD_NOTIFICATION, this );
-        updateNotification.showUpdateStateNotificationDownloadedUpdate();
-        startForeground( UpdateNotification.DOWNLOAD_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
-        updateNotification.setProgress( 30 );
+        updateNotification.initializeUpdateOSNotification(
+                getResources().getString( R.string.notification_title ),
+                getResources().getString( R.string.notification_text_downloading ),
+                R.drawable.ic_info,
+                R.drawable.ic_launcher,
+                false
+        );
     }
+
+    public void startDownloadUpdate()
+    {
+        String UPDATE_URL  = sp.loadData(SharedPreferences.KEYS.UPDATE_URL);
+        FILE_NAME   = sp.loadData( SharedPreferences.KEYS.FILE_NAME );
+        FILE_SIZE   = sp.loadData( SharedPreferences.KEYS.FILE_SIZE );
+
+        createUpdateProgressNotif();
+        downloadOTAfileAsyncTask = new DownloadOTAfileAsyncTask( this, updateNotification );
+
+        if( !isUpdateDownload() )
+        {
+            startForeground( UpdateNotification.DOWNLOAD_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+
+            MainActivity.actualProgress = 0;
+            downloadOTAfileAsyncTask.execute(
+                    UPDATE_URL,
+                    FILE_NAME,
+                    DESTINATION_DIR_CONST
+            );
+        }
+    }
+
+    public void stopDownloadUpdate()
+    {
+        downloadOTAfileAsyncTask.cancel( true );
+        this.sendBroadcast( new Intent( BroadcastMsgReceiver.UPDATE_OS_STOP_DOWNLOAD_UPDATE ) );
+        MainActivity.isUpdateCurrentlyDownloading = false;
+    }
+
+    private boolean hasInternetConnection()
+    {
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    private boolean isUpdateDownload()
+    {
+        File file = UpdateOS.findFileInCache( FILE_NAME );
+        if(file == null)
+        {
+            return false;
+        }
+        else {
+            int fileSizeInSP_int = getIntValueOfFileSize( FILE_SIZE );
+            return file.length() == fileSizeInSP_int;
+        }
+    }
+    private int getIntValueOfFileSize( String fileSizeInSP_String )
+    {
+        if( fileSizeInSP_String.isEmpty() )
+        {
+            return 0;
+        }
+        else
+        {
+            return Integer.parseInt( fileSizeInSP_String );
+        }
+    }
+
 
     @Nullable
     @Override
@@ -204,32 +345,4 @@ public class UpdateOSService extends Service
         return null;
     }
 
-    public static final String UPDATE_OS_LOGIN = "UPDATE_OS_LOGIN";
-    public static final String UPDATE_OS_END_SERVICE = "UPDATE_OS_END_SERVICE";
-    public static final String UPDATE_OS_NEW_UPDATE = "UPDATE_OS_NEW_UPDATE";
-    public static final String UPDATE_OS_DOWNLOAD_UPDATE = "UPDATE_OS_DOWNLOAD_UPDATE";
-    public static final String UPDATE_OS_UPDATED_DEVICE = "UPDATE_OS_UPDATED_DEVICE";
-
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d( LOG_TAG, TAG_CLASS + " getting broadcast: " + intent.getAction() );
-            if ( intent.getAction().equals( UPDATE_OS_DOWNLOAD_UPDATE ) )
-            {
-                downloadUpdate();
-            }
-            else if ( intent.getAction().equals( UPDATE_OS_NEW_UPDATE ) )
-            {
-                newUpdate();
-            }
-            else if ( intent.getAction().equals( UPDATE_OS_END_SERVICE ) )
-            {
-                stopService();
-            }
-            else if ( intent.getAction().equals( UPDATE_OS_UPDATED_DEVICE ) )
-            {
-                updatedDevice();
-            }
-        }
-    };
 }

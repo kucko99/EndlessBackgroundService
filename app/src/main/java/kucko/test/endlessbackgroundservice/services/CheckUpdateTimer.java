@@ -10,12 +10,12 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class TwentyFourHoursTimer extends BroadcastReceiver
+public class CheckUpdateTimer extends BroadcastReceiver
 {
-    private static final String TAG_CLASS = "TwentyFourHoursTimer::";
+    private static final String TAG_CLASS = "CheckUpdateTimer::";
+
+    public static final long PERIODIC_CHECK_INTERVAL = AlarmManager.INTERVAL_DAY;
+    public static final long FAIL_CHECK_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
 
     @Override
     public void onReceive( Context context, Intent intent )
@@ -33,18 +33,12 @@ public class TwentyFourHoursTimer extends BroadcastReceiver
         }
     }
 
-    public void setUpAlarm( Context context, boolean restart )
+    public void setAlarm( Context context, long interval )
     {
         AlarmManager am = ( AlarmManager ) context.getSystemService( Context.ALARM_SERVICE );
-        Intent intent = new Intent( context, TwentyFourHoursTimer.class );
+        Intent intent = new Intent( context, CheckUpdateTimer.class );
         PendingIntent pendingIntent = PendingIntent.getBroadcast( context, 0, intent, 0 );
-
-        if ( restart )
-        {
-            am.cancel( pendingIntent );
-        }
-
-        am.setRepeating( AlarmManager.RTC, System.currentTimeMillis(),
-                AlarmManager.INTERVAL_DAY, pendingIntent );
+        am.setRepeating( AlarmManager.RTC, System.currentTimeMillis() + interval,
+                interval, pendingIntent );
     }
 }

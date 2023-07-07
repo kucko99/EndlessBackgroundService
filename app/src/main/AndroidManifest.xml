@@ -28,23 +28,17 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <action android:name="UPDATE_OS_DOWNLOAD_UPDATE" />
-                <action android:name="UPDATE_OS_NEW_UPDATE" />
-                <action android:name="UPDATE_OS_END_SERVICE" />
-                <action android:name="UPDATE_OS_UPDATED_DEVICE" />
             </intent-filter>
         </activity>
 
-        <receiver android:name=".services.BootBroadcastReceiver"
+        <receiver android:name=".services.CheckUpdateTimer"
             android:exported="false">
             <intent-filter android:priority="999">
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".services.TwentyFourHoursTimer"
+        <receiver android:name=".services.BootBroadcastReceiver"
             android:exported="false">
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

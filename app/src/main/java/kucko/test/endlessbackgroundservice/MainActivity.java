@@ -1,5 +1,7 @@
 package kucko.test.endlessbackgroundservice;
 
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_START_DOWNLOAD_UPDATE;
+
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,12 +12,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import java.util.List;
 
+import kucko.test.endlessbackgroundservice.dialog.CustomProgressDialog;
 import kucko.test.endlessbackgroundservice.services.BootBroadcastReceiver;
 import kucko.test.endlessbackgroundservice.services.UpdateOSService;
 
@@ -25,6 +30,13 @@ public class MainActivity extends AppCompatActivity
     public static final String LOG_TAG = "EndlessBackgrSer";
     private static final String TAG_CLASS = "MainActivity::";
 
+    public static final String DESTINATION_DIR_CONST           = /*"/cache/update";*/"/storage/emulated/legacy/update";
+
+    public static boolean isUpdateCurrentlyDownloading = false;
+    public static int actualProgress = 0;
+    public static Handler handler;
+    private CustomProgressDialog mPDialog;
+
     private TextView text;
 
     @Override
@@ -32,10 +44,6 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction( UpdateOSService.UPDATE_OS_LOGIN );
-        registerReceiver( broadcastReceiver, filter );
 
         text = ( TextView ) findViewById( R.id.login );
 
@@ -46,12 +54,68 @@ public class MainActivity extends AppCompatActivity
         {
             BootBroadcastReceiver.startService( this, UpdateOSService.NFUHW, UpdateOSService.NFUFW, UpdateOSService.ECRFW );
         }
+
+        progressDialog();
+
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                mPDialog.setProgress( MainActivity.actualProgress );
+            }
+        };
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(broadcastReceiver );
+    }
+
+    private void progressDialog()
+    {
+        mPDialog = new CustomProgressDialog( this, MainActivity.actualProgress );
+
+        View.OnClickListener onClickListener = v -> {
+//            downloadOTAfileAsyncTask.cancel( true );
+            MainActivity.isUpdateCurrentlyDownloading = false;
+        };
+
+        mPDialog.setButton( onClickListener );
+
+        if( isUpdateCurrentlyDownloading )
+        {
+            showProgressDialog();
+        }
+    }
+
+    public void showProgressDialog()
+    {
+        if( (mPDialog.dialog != null) && !mPDialog.dialog.isShowing() )
+        {
+            mPDialog.setProgress( actualProgress );
+            try
+            {
+                mPDialog.dialog.show();
+            }
+            catch( Exception e )
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void hideProgressDialog()
+    {
+        if( (mPDialog.dialog != null) && mPDialog.dialog.isShowing() )
+        {
+            try
+            {
+                mPDialog.dialog.dismiss();
+            }
+            catch( Exception e )
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void readLoginAndRefreshUI( String loginFromService )
@@ -60,25 +124,25 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void updatedDevice(View view) {
-        sendBroadcast( new Intent().setAction( UpdateOSService.UPDATE_OS_UPDATED_DEVICE ) );
+        //sendBroadcast( new Intent().setAction( UPDATE_OS_UPDATED_DEVICE ) );
         Log.d( LOG_TAG, TAG_CLASS + " sending device is updated broadcast." );
     }
 
     public void downloadUpdate( View view )
     {
-        sendBroadcast( new Intent().setAction( UpdateOSService.UPDATE_OS_DOWNLOAD_UPDATE ) );
+        //sendBroadcast( new Intent().setAction( UPDATE_OS_DOWNLOAD_UPDATE ) );
         Log.d( LOG_TAG, TAG_CLASS + " sending download broadcast." );
     }
 
     public void newUpdate( View view )
     {
-        sendBroadcast( new Intent().setAction( UpdateOSService.UPDATE_OS_NEW_UPDATE ) );
+        //sendBroadcast( new Intent().setAction( UPDATE_OS_NEW_UPDATE ) );
         Log.d( LOG_TAG, TAG_CLASS + " sending new update broadcast." );
     }
 
     public void endService( View view )
     {
-        sendBroadcast( new Intent().setAction( UpdateOSService.UPDATE_OS_END_SERVICE ) );
+        //sendBroadcast( new Intent().setAction( UPDATE_OS_END_SERVICE ) );
         Log.d( LOG_TAG, TAG_CLASS + " sending end service broadcast." );
     }
 
@@ -93,18 +157,6 @@ public class MainActivity extends AppCompatActivity
         }
         text.setText( result );
     }
-
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d( LOG_TAG, TAG_CLASS + " getting broadcast: " + intent.getAction() );
-            if ( intent.getAction().equals( UpdateOSService.UPDATE_OS_LOGIN ) )
-            {
-                String loginFromService = intent.getStringExtra( "login" );
-                readLoginAndRefreshUI( loginFromService );
-            }
-        }
-    };
 
     public void threadsTest( View view )
     {
@@ -125,6 +177,11 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return false;
+    }
+
+    public void startDownload( View view )
+    {
+        sendBroadcast( new Intent().setAction( UPDATE_OS_START_DOWNLOAD_UPDATE ) );
     }
 
     public void timerTest( View view )

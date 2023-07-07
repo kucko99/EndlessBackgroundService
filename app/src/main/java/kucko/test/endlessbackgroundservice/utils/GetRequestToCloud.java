@@ -1,5 +1,7 @@
 package kucko.test.endlessbackgroundservice.utils;
 
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_NEW_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_UPDATED_DEVICE;
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
 import android.content.Context;
@@ -14,8 +16,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import kucko.test.endlessbackgroundservice.BroadcastMsgReceiver;
 import kucko.test.endlessbackgroundservice.R;
+import kucko.test.endlessbackgroundservice.UpdateOS;
 import kucko.test.endlessbackgroundservice.notification.UpdateNotification;
+import kucko.test.endlessbackgroundservice.services.UpdateOSService;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -91,10 +96,10 @@ public class GetRequestToCloud
                 {
                     newUpdate = true;
 
-//                    if( !isUpdateDownload() )
-//                    {
-//                        updateNotification.showUpdateStateNotificationAvailableUpdate();
-//                    }
+                    if( !isUpdateDownload() )
+                    {
+                        context.sendBroadcast( new Intent().setAction( BroadcastMsgReceiver.UPDATE_OS_NEW_UPDATE ) );
+                    }
 
                     if ( Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1 )
                     {
@@ -108,6 +113,7 @@ public class GetRequestToCloud
                 else
                 {
                     newUpdate = false;
+                    context.sendBroadcast( new Intent().setAction( UPDATE_OS_UPDATED_DEVICE ) );
 
                     if ( Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1 )
                     {
@@ -189,7 +195,7 @@ public class GetRequestToCloud
         }
     }
 
-    /*private boolean isUpdateDownload()
+    private boolean isUpdateDownload()
     {
         String fileNameInSP = sp.loadData( SharedPreferences.KEYS.FILE_NAME );
         String fileSizeInSP_String = sp.loadData( SharedPreferences.KEYS.FILE_SIZE );
@@ -223,5 +229,5 @@ public class GetRequestToCloud
         {
             return Integer.parseInt( fileSizeInSP_String );
         }
-    }*/
+    }
 }
