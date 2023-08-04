@@ -1,11 +1,18 @@
 package kucko.test.endlessbackgroundservice.utils;
 
+import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
+
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import java.util.Map;
+
 public class SharedPreferences
 {
+    private static final String TAG_CLASS = "SharedPreferences::";
+
     public static final String sharedPreferencesName = "SharedPreferencesAboutDownload";
     public static final int mode = Context.MODE_PRIVATE;
 
@@ -74,6 +81,35 @@ public class SharedPreferences
         saveData( KEYS.FILE_SIZE,               "" );
         saveData( KEYS.UPDATE_VERSION,          "" );
         saveData( KEYS.UPDATE_URL,              "" );
+    }
+
+    public void removeUnusedData()
+    {
+        android.content.SharedPreferences.Editor editor = sharedPreferences.edit();
+        Map<String, ?> allEntries = sharedPreferences.getAll();
+
+        for ( Map.Entry<String, ?> entry : allEntries.entrySet() )
+        {
+            if ( !isKeyDefined( entry.getKey() ) )
+            {
+                editor.remove( entry.getKey() );
+                Log.d( LOG_TAG, TAG_CLASS + " remove key: " + entry.getKey() );
+            }
+        }
+
+        editor.apply();
+    }
+
+    private boolean isKeyDefined( String key )
+    {
+        for (KEYS definedKey : KEYS.values() )
+        {
+            if ( definedKey.toString().equals( key ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

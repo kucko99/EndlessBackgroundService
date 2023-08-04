@@ -2,6 +2,7 @@ package kucko.test.endlessbackgroundservice.utils;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
+import android.app.Activity;
 import android.app.Application;
 import android.app.Service;
 import android.content.Context;
@@ -16,7 +17,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
 
+import kucko.test.endlessbackgroundservice.BroadcastMsgReceiver;
 import kucko.test.endlessbackgroundservice.R;
+import kucko.test.endlessbackgroundservice.services.CheckUpdateTimer;
 import kucko.test.endlessbackgroundservice.services.UpdateOSService;
 import kucko.test.endlessbackgroundservice.utils.GetDeviceInfo;
 import kucko.test.endlessbackgroundservice.utils.GetRequestToCloud;
@@ -51,45 +54,60 @@ public class SetUpLogin
     {
         String login = "";
         String checkCommWithNFU = getDeviceInfo.getDeviceInfoExByIndex( 2 );
-        if( checkCommWithNFU.contains( "Error" ) )
+        if ( checkCommWithNFU.contains( "Error" ) )
         {
-            if (context instanceof Application)
+            if ( context instanceof Activity)
             {
                 Intent serverError = new Intent();
-                //serverError.setAction( BroadcastMsgReceiver.UPDATE_OS_REQUEST_TO_CLOUD_ERROR);
+                //serverError.setAction( BroadcastMsgReceiver.UPDATE_OS_REQUEST_TO_CLOUD_ERROR );
                 serverError.putExtra( "message", context.getResources().getString( R.string.errorCommunicationNFU ) );
-                context.sendBroadcast(serverError);
+                context.sendBroadcast( serverError );
             }
-            else if (context instanceof Service)
+            else if ( context instanceof Service )
             {
-                Log.d( LOG_TAG, TAG_CLASS + " " + context.getResources().getString( R.string.errorCommunicationNFU ) + ". (" + GET_REQUEST + ")" );
+                Log.d( LOG_TAG, TAG_CLASS + " " + context.getResources().getString(R.string.errorCommunicationNFU) + ". (" + whichRequest + ")" );
+                //context.sendBroadcast( new Intent().setAction( UPDATE_OS_SERVICE_NO_UPDATE ) );
             }
             Log.d( LOG_TAG, TAG_CLASS + " errorCommunicationNFU (" + whichRequest + ")" );
+
+            if ( whichRequest.equals( GET_REQUEST ) )
+            {
+                UpdateOSService.failCheckNum++;
+                Log.d( LOG_TAG, TAG_CLASS + " fail check num: " + UpdateOSService.failCheckNum );
+
+                if ( UpdateOSService.failCheckNum == 4 )
+                {
+                    UpdateOSService.checkUpdateTimer.setAlarm( context, CheckUpdateTimer.PERIODIC_CHECK_INTERVAL );
+                    UpdateOSService.failCheckNum = 0;
+                }
+            }
         }
         else
         {
             Log.d( LOG_TAG, TAG_CLASS + " NFUHW: " + UpdateOSService.NFUHW + " | NFUFW: " + UpdateOSService.NFUFW + " | ECRFW: " + UpdateOSService.ECRFW );
-            if( UpdateOSService.NFUHW.isEmpty() || UpdateOSService.NFUFW.isEmpty() || UpdateOSService.ECRFW.isEmpty() )
+            if ( UpdateOSService.NFUHW.isEmpty() || UpdateOSService.NFUFW.isEmpty() || UpdateOSService.ECRFW.isEmpty() )
             {
                 UpdateOSService.NFUHW = getNFUHW();
                 UpdateOSService.NFUFW = getNFUFW();
                 UpdateOSService.ECRFW = getECRFW();
-                Log.d( LOG_TAG, TAG_CLASS + " one of versions are empty." );
-            }
-            else
-            {
-                Log.d( LOG_TAG, TAG_CLASS + " versions are not empty." );
             }
 
-            if( whichRequest.equals( GET_REQUEST ) )
+            if ( whichRequest.equals( GET_REQUEST ) )
             {
                 login = getECRSN() + "_" + getECRHW() + "_" + UpdateOSService.NFUHW + "_" + getDEVID()
                         + SmVersionString + UpdateOSService.NFUFW + EcrVersionString + UpdateOSService.ECRFW;
             }
-            else if( whichRequest.equals( POST_REQUEST ) )
+            else if ( whichRequest.equals( POST_REQUEST ) )
             {
                 login = getECRSN() + "_" + getECRHW() + "_" + UpdateOSService.NFUHW + "_" + getDEVID()
                         + IcmVersionString + UpdateOSService.NFUFW + EcrVersionString + UpdateOSService.ECRFW;
+            }
+
+            if ( UpdateOSService.failCheckNum > 1 )
+            {
+                UpdateOSService.checkUpdateTimer.setAlarm( context, CheckUpdateTimer.PERIODIC_CHECK_INTERVAL );
+                UpdateOSService.failCheckNum = 0;
+                Log.d( LOG_TAG, TAG_CLASS + " setting alarm to PERIODIC_CHECK_INTERVAL." );
             }
         }
         Log.d( LOG_TAG, TAG_CLASS + " (" + whichRequest + ") Login: " + login );

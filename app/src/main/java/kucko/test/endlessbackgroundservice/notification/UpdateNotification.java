@@ -1,6 +1,7 @@
 package kucko.test.endlessbackgroundservice.notification;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -16,38 +17,52 @@ import androidx.core.app.NotificationCompat;
 import kucko.test.endlessbackgroundservice.MainActivity;
 import kucko.test.endlessbackgroundservice.R;
 
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class UpdateNotification extends Notification
 {
     private static final String TAG_CLASS       = "UpdateNotification::";
-    private final int NOTIFICATION_ID;
+    public final int NOTIFICATION_ID;
+    public final int NOTIFICATION_TYPE;
+    private final String CHANNEL_ID = "UPDATEOS:NotificationChannel";
 
-    public static final int DOWNLOAD_NOTIFICATION   = 1;
-    public static final int STATE_NOTIFICATION      = 2;
+    public static final int ID_DOWNLOAD_NOTIFICATION    = 1;
+    public static final int ID_STATE_NOTIFICATION       = 2;
+
+    public static final int TYPE_NO_UPDATE_ON_CLOUD     = 11;
+    public static final int TYPE_UPDATE_ON_CLOUD        = 12;
+    public static final int TYPE_UPDATE_DOWNLOADED      = 13;
+    public static final int TYPE_UPDATE_DOWNLOAD_FAILED = 14;
 
     private final Context m_Context;
     private final PendingIntent m_PendingIntent;
     private final NotificationManager m_NotificationManager;
+    private NotificationChannel m_NotificationChannel;
     private NotificationCompat.Builder  m_NotificationBuilder;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public UpdateNotification( int typeOfNotification, Context context )
+    public UpdateNotification( int notificationID, int notificationType,  Context context )
     {
         this.m_Context = context;
-        this.NOTIFICATION_ID = typeOfNotification;
+        this.NOTIFICATION_ID = notificationID;
+        this.NOTIFICATION_TYPE = notificationType;
         m_NotificationManager = ( NotificationManager ) m_Context.getSystemService( Context.NOTIFICATION_SERVICE );
+
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+        {
+            m_NotificationChannel = new NotificationChannel( CHANNEL_ID, "Foreground Service", NotificationManager.IMPORTANCE_DEFAULT );
+            m_NotificationManager.createNotificationChannel( m_NotificationChannel );
+        }
 
         Intent notificationIntent = new Intent( context, MainActivity.class );
         TaskStackBuilder stackBuilder = TaskStackBuilder.create( context );
         stackBuilder.addNextIntentWithParentStack( notificationIntent );
         m_PendingIntent =
                 stackBuilder.getPendingIntent(0,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE );
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public NotificationCompat.Builder getGeneralNotificationBuilder( String title, String text,
-                                                                     int smallIconResId, int largeIconResId,
-                                                                     boolean autoCancel, long sendTime )
+    private NotificationCompat.Builder getGeneralNotificationBuilder( String title, String text,
+                                                                      int smallIconResId, int largeIconResId,
+                                                                      boolean autoCancel, long sendTime )
     {
         NotificationCompat.Builder builder = new NotificationCompat.Builder( m_Context );
         BitmapDrawable bitmapDrawable = ( BitmapDrawable ) m_Context.getDrawable( largeIconResId );
@@ -62,10 +77,10 @@ public class UpdateNotification extends Notification
         builder.setContentIntent( m_PendingIntent );
         builder.setDefaults( Notification.DEFAULT_ALL );
         builder.setOngoing( true );
+        builder.setChannelId( CHANNEL_ID );
         return builder;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void initializeUpdateOSNotification(String title, String text,
                                                int smallIconResId, int largeIconResId,
                                                boolean autoCancel )
@@ -76,12 +91,11 @@ public class UpdateNotification extends Notification
                 smallIconResId, largeIconResId, autoCancel, sendTime );
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void setProgress( int progress )
     {
         m_NotificationBuilder.setProgress( 100, progress, false );
         m_NotificationManager.notify(
-                UpdateNotification.DOWNLOAD_NOTIFICATION, getM_NotificationBuilder().build() );
+                UpdateNotification.ID_DOWNLOAD_NOTIFICATION, getM_NotificationBuilder().build() );
     }
 
     public NotificationCompat.Builder getM_NotificationBuilder()
@@ -94,35 +108,44 @@ public class UpdateNotification extends Notification
         return m_NotificationManager;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public NotificationChannel getM_NotificationChannel()
+    {
+        return m_NotificationChannel;
+    }
+
     public void showUpdateStateNotificationNoAvailableUpdate()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+        initializeUpdateOSNotification(
+                m_Context.getResources().getString( R.string.notification_title ),
                 m_Context.getResources().getString( R.string.cloud_progress_bar_no_update ),
-                R.drawable.ic_info, R.drawable.ic_launcher, false );
+                R.drawable.ic_info, R.drawable.ic_launcher, false
+        );
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationAvailableUpdate()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+        initializeUpdateOSNotification(
+                m_Context.getResources().getString( R.string.notification_title ),
                 m_Context.getResources().getString( R.string.cloud_progress_bar_new_update ),
-                R.drawable.ic_info, R.drawable.ic_launcher, false );
+                R.drawable.ic_info, R.drawable.ic_launcher, false
+        );
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationDownloadFailed()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+        initializeUpdateOSNotification(
+                m_Context.getResources().getString( R.string.notification_title ),
                 m_Context.getResources().getString( R.string.notification_text_failed ),
-                R.drawable.ic_info, R.drawable.ic_launcher, false );
+                R.drawable.ic_info, R.drawable.ic_launcher, false
+        );
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void showUpdateStateNotificationDownloadedUpdate()
     {
-        initializeUpdateOSNotification( m_Context.getResources().getString( R.string.notification_title ),
+        initializeUpdateOSNotification(
+                m_Context.getResources().getString( R.string.notification_title ),
                 m_Context.getResources().getString( R.string.notification_text_done ),
-                R.drawable.ic_info, R.drawable.ic_launcher, false );
+                R.drawable.ic_info, R.drawable.ic_launcher, false
+        );
     }
 }

@@ -1,6 +1,6 @@
 package kucko.test.endlessbackgroundservice.utils;
 
-import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_NEW_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_DOWNLOAD_UPDATE;
 import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_UPDATED_DEVICE;
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
@@ -19,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 import kucko.test.endlessbackgroundservice.BroadcastMsgReceiver;
 import kucko.test.endlessbackgroundservice.R;
 import kucko.test.endlessbackgroundservice.UpdateOS;
-import kucko.test.endlessbackgroundservice.notification.UpdateNotification;
-import kucko.test.endlessbackgroundservice.services.UpdateOSService;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -37,7 +35,6 @@ public class GetRequestToCloud
     private final Context context;
 
     private final SharedPreferences sp;
-    private final UpdateNotification updateNotification;
 
     private String outputJSON;
 
@@ -49,7 +46,6 @@ public class GetRequestToCloud
         this.context = context;
         this.login = login;
         this.sp = new SharedPreferences( context );
-        this.updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, context );
     }
 
     public void checkNewUpdateOnCloud()
@@ -80,9 +76,9 @@ public class GetRequestToCloud
                         //serverError.setAction( BroadcastMsgReceiver.UPDATE_OS_REQUEST_TO_CLOUD_ERROR);
                         //serverError.putExtra( "message", context.getString(R.string.errorCommunicationCloud) + "\n" + response.message() );
                         context.sendBroadcast( serverError );
+                        throw new IOException( "Unexpected code " + response );
                     }
-
-                    throw new IOException( "Unexpected code " + response );
+                    context.sendBroadcast( new Intent().setAction( UPDATE_OS_UPDATED_DEVICE ) );
                 }
 
                 if ( response.body() != null )
@@ -162,6 +158,8 @@ public class GetRequestToCloud
                 new IconNotifBadge( context ).hideIconBadge();
                 sp.saveData( SharedPreferences.KEYS.IF_NEW_UPDATE, String.valueOf( newUpdate ) );
 
+                context.sendBroadcast( new Intent().setAction( UPDATE_OS_UPDATED_DEVICE ) );
+
                 Log.d( LOG_TAG, TAG_CLASS + " checkUpdateOnCloud: onFailure()" );
                 e.printStackTrace();
             }
@@ -206,7 +204,7 @@ public class GetRequestToCloud
             int fileSizeInSP_int = getIntValueOfFileSize( fileSizeInSP_String );
             if( file.length() > 0 && file.length() == fileSizeInSP_int )
             {
-                updateNotification.showUpdateStateNotificationDownloadedUpdate();
+                context.sendBroadcast(new Intent().setAction(UPDATE_OS_DOWNLOAD_UPDATE));
                 return true;
             }
             else

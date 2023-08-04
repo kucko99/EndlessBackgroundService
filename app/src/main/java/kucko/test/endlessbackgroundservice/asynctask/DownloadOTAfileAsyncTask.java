@@ -207,7 +207,7 @@ public class DownloadOTAfileAsyncTask extends AsyncTask< String, Integer, Boolea
         MainActivity.isUpdateCurrentlyDownloading = false;
         MainActivity.actualProgress = 0;
 
-        updateProgressNotification.getM_NotificationManager().cancel( UpdateNotification.DOWNLOAD_NOTIFICATION );
+        updateProgressNotification.getM_NotificationManager().cancel( UpdateNotification.ID_DOWNLOAD_NOTIFICATION );
 
         if( bResult )
         {

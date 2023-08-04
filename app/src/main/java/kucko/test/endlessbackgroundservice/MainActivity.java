@@ -1,6 +1,9 @@
 package kucko.test.endlessbackgroundservice;
 
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_DOWNLOAD_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_NEW_UPDATE;
 import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_START_DOWNLOAD_UPDATE;
+import static kucko.test.endlessbackgroundservice.BroadcastMsgReceiver.UPDATE_OS_UPDATED_DEVICE;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +40,9 @@ public class MainActivity extends AppCompatActivity
     public static Handler handler;
     private CustomProgressDialog mPDialog;
 
+    private BroadcastMsgReceiver m_BroadcastMsgReceiver;
+    private IntentFilter m_BroadcastMsgFilter;
+
     private TextView text;
 
     @Override
@@ -45,15 +51,12 @@ public class MainActivity extends AppCompatActivity
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
 
+        // Create broadcast message receiver
+        //createBroadcastMsgReceiver();
+
         text = ( TextView ) findViewById( R.id.login );
 
-        boolean isMyServiceRunning = isServiceRunning( this, UpdateOSService.class );
-        Log.d( LOG_TAG, TAG_CLASS + " is service running? - " + ( isMyServiceRunning ? "YES" : "NO" ));
-
-        if( !isMyServiceRunning )
-        {
-            BootBroadcastReceiver.startService( this, UpdateOSService.NFUHW, UpdateOSService.NFUFW, UpdateOSService.ECRFW );
-        }
+        checkIfServiceRunning();
 
         progressDialog();
 
@@ -67,8 +70,35 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver( m_BroadcastMsgReceiver, m_BroadcastMsgFilter );
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    // Create broadcast message receiver
+    public void createBroadcastMsgReceiver()
+    {
+        m_BroadcastMsgReceiver = new BroadcastMsgReceiver( this );
+        m_BroadcastMsgFilter = new IntentFilter();
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_DOWNLOAD_UPDATE );
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_NEW_UPDATE );
+        m_BroadcastMsgFilter.addAction( UPDATE_OS_UPDATED_DEVICE );
+    }
+
+    private void checkIfServiceRunning()
+    {
+        boolean isMyServiceRunning = isServiceRunning( this );
+        Log.d( LOG_TAG, TAG_CLASS + " is service running? - " + ( isMyServiceRunning ? "YES" : "NO" ));
+
+        if( !isMyServiceRunning )
+        {
+            BootBroadcastReceiver.startService( this, UpdateOSService.NFUHW, UpdateOSService.NFUFW, UpdateOSService.ECRFW );
+        }
     }
 
     private void progressDialog()
@@ -164,14 +194,14 @@ public class MainActivity extends AppCompatActivity
         startActivity( threadsActivityIntent );
     }
 
-    public boolean isServiceRunning( Context context, Class<?> serviceClass )
+    private boolean isServiceRunning( Context context )
     {
         ActivityManager manager = ( ActivityManager ) context.getSystemService( Context.ACTIVITY_SERVICE );
         List<ActivityManager.RunningServiceInfo> runningServices = manager.getRunningServices( Integer.MAX_VALUE );
 
         for ( ActivityManager.RunningServiceInfo serviceInfo : runningServices )
         {
-            if ( serviceInfo.service.getClassName().equals( serviceClass.getName() ) )
+            if ( serviceInfo.service.getClassName().equals( UpdateOSService.class.getName() ) )
             {
                 return true;
             }

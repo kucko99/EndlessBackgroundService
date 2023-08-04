@@ -13,6 +13,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -76,8 +77,12 @@ public class UpdateOSService extends Service
     private String FILE_NAME;
     private String FILE_SIZE;
 
+    private static Context context;
+    public static CheckUpdateTimer checkUpdateTimer;
+    public static int failCheckNum;
+
     private SharedPreferences sp;
-    private DownloadOTAfileAsyncTask downloadOTAfileAsyncTask;
+    private static DownloadOTAfileAsyncTask downloadOTAfileAsyncTask;
 
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
@@ -92,21 +97,26 @@ public class UpdateOSService extends Service
         super.onCreate();
         Log.d( LOG_TAG, TAG_CLASS + " the service has been created." );
 
+        context = this;
+        failCheckNum = 0;
+
         createBroadcastReceiver();
         registerReceiver( m_BroadcastMsgReceiver, m_BroadcastMsgFilter );
+
+        checkUpdateTimer = new CheckUpdateTimer();
+        sp = new SharedPreferences( this );
+        sp.removeUnusedData();
 
         SetUpLogin setUp = new SetUpLogin( this );
         try
         {
-            getReqLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
             postReqLogin = setUp.setUpLogin( SetUpLogin.POST_REQUEST );
+            getReqLogin = setUp.setUpLogin( SetUpLogin.GET_REQUEST );
         }
         catch ( IOException e )
         {
             e.printStackTrace();
         }
-
-        sp = new SharedPreferences( this );
     }
 
     private void createBroadcastReceiver()
@@ -213,18 +223,17 @@ public class UpdateOSService extends Service
 
         isServiceStarted = true;
 
-        String PR_NFU_HW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_NFU_HW_VERSION );
-        String PR_NFU_FW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_NFU_FW_VERSION );
-        String PR_ECR_FW_VERSION = sp.loadData( SharedPreferences.KEYS.PR_ECR_FW_VERSION );
-        if ( !NFUHW.equals( PR_NFU_HW_VERSION ) || !NFUFW.equals( PR_NFU_FW_VERSION ) || !ECRFW.equals( PR_ECR_FW_VERSION ) )
+        if ( postReqLogin.equals( "" ) || getReqLogin.equals( "" ) )
+        {
+            checkUpdateTimer.setAlarm( this, CheckUpdateTimer.FAIL_CHECK_INTERVAL );
+        }
+        else
         {
             new PostRequestToCloud( postReqLogin, this ).sendNFUAndECRFWVersionsToCloud();
+            new GetRequestToCloud( getReqLogin, this ).checkNewUpdateOnCloud();
+
+            checkUpdateTimer.setAlarm( this, CheckUpdateTimer.PERIODIC_CHECK_INTERVAL );
         }
-
-        new GetRequestToCloud( getReqLogin, this ).checkNewUpdateOnCloud();
-
-        CheckUpdateTimer checkUpdateTimer = new CheckUpdateTimer();
-        checkUpdateTimer.setAlarm( this, CheckUpdateTimer.PERIODIC_CHECK_INTERVAL );
 
         connectivityManager.unregisterNetworkCallback( networkCallback );
 
@@ -244,31 +253,38 @@ public class UpdateOSService extends Service
         Log.d( LOG_TAG, TAG_CLASS + " stopping the foreground service." );
     }
 
-    public void updatedDevice()
+    public void noUpdateOnCloudNotification()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
+        updateNotification = new UpdateNotification( UpdateNotification.ID_STATE_NOTIFICATION, UpdateNotification.TYPE_NO_UPDATE_ON_CLOUD, this );
         updateNotification.showUpdateStateNotificationNoAvailableUpdate();
         updateNotification.getM_NotificationBuilder().setPriority( Notification.PRIORITY_MIN );
-        startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+        startForeground( UpdateNotification.ID_STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+    }
+
+    public void updatedDevice()
+    {
+        updateNotification = new UpdateNotification( UpdateNotification.ID_STATE_NOTIFICATION, UpdateNotification.TYPE_UPDATE_ON_CLOUD,this );
+        updateNotification.showUpdateStateNotificationAvailableUpdate();
+        startForeground( UpdateNotification.ID_STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
     public void newUpdate()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
-        updateNotification.showUpdateStateNotificationAvailableUpdate();
-        startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+        updateNotification = new UpdateNotification( UpdateNotification.ID_STATE_NOTIFICATION, UpdateNotification.TYPE_UPDATE_DOWNLOADED, this );
+        updateNotification.showUpdateStateNotificationDownloadedUpdate();
+        startForeground( UpdateNotification.ID_STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+    }
+
+    public void failedDownloadUpdate()
+    {
+        updateNotification = new UpdateNotification( UpdateNotification.ID_STATE_NOTIFICATION, UpdateNotification.TYPE_UPDATE_DOWNLOAD_FAILED, this );
+        updateNotification.showUpdateStateNotificationDownloadFailed();
+        startForeground( UpdateNotification.ID_STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
     }
 
     public void downloadUpdate()
     {
-        updateNotification = new UpdateNotification( UpdateNotification.STATE_NOTIFICATION, this );
-        updateNotification.showUpdateStateNotificationDownloadedUpdate();
-        startForeground( UpdateNotification.STATE_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
-    }
-
-    private void createUpdateProgressNotif()
-    {
-        updateNotification = new UpdateNotification( UpdateNotification.DOWNLOAD_NOTIFICATION, this );
+        updateNotification = new UpdateNotification( UpdateNotification.ID_DOWNLOAD_NOTIFICATION, 0, this );
         updateNotification.initializeUpdateOSNotification(
                 getResources().getString( R.string.notification_title ),
                 getResources().getString( R.string.notification_text_downloading ),
@@ -284,12 +300,12 @@ public class UpdateOSService extends Service
         FILE_NAME   = sp.loadData( SharedPreferences.KEYS.FILE_NAME );
         FILE_SIZE   = sp.loadData( SharedPreferences.KEYS.FILE_SIZE );
 
-        createUpdateProgressNotif();
+        downloadUpdate();
         downloadOTAfileAsyncTask = new DownloadOTAfileAsyncTask( this, updateNotification );
 
         if( !isUpdateDownload() )
         {
-            startForeground( UpdateNotification.DOWNLOAD_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
+            startForeground( UpdateNotification.ID_DOWNLOAD_NOTIFICATION, updateNotification.getM_NotificationBuilder().build() );
 
             MainActivity.actualProgress = 0;
             downloadOTAfileAsyncTask.execute(
@@ -345,4 +361,24 @@ public class UpdateOSService extends Service
         return null;
     }
 
+    @Override
+    public void onConfigurationChanged( Configuration newConfig )
+    {
+        super.onConfigurationChanged( newConfig );
+        switch ( updateNotification.NOTIFICATION_TYPE )
+        {
+            case 11:
+                updatedDevice();
+                break;
+            case 12:
+                newUpdate();
+                break;
+            case 13:
+                downloadUpdate();
+                break;
+            case 14:
+
+                break;
+        }
+    }
 }

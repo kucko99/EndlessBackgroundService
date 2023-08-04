@@ -2,6 +2,7 @@ package kucko.test.endlessbackgroundservice.services;
 
 import static kucko.test.endlessbackgroundservice.MainActivity.LOG_TAG;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +10,8 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+
+import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class BootBroadcastReceiver extends BroadcastReceiver
@@ -37,14 +40,31 @@ public class BootBroadcastReceiver extends BroadcastReceiver
             updateOSService.putExtra( "ECRFW", ECRFW );
         }
 
-        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+        if ( !isServiceRunning( context, UpdateOSService.class ) )
         {
-            context.startForegroundService( updateOSService );
-        }
-        else
-        {
-            context.startService( updateOSService );
+            if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+            {
+                context.startForegroundService( updateOSService );
+            }
+            else
+            {
+                context.startService( updateOSService );
+            }
         }
     }
 
+    public static boolean isServiceRunning( Context context, Class<?> serviceClass )
+    {
+        ActivityManager manager = ( ActivityManager ) context.getSystemService( Context.ACTIVITY_SERVICE );
+        List<ActivityManager.RunningServiceInfo> runningServices = manager.getRunningServices( Integer.MAX_VALUE );
+
+        for ( ActivityManager.RunningServiceInfo serviceInfo : runningServices )
+        {
+            if ( serviceInfo.service.getClassName().equals( serviceClass.getName() ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
